@@ -30,6 +30,9 @@ public class SecurityConfig {
              .anyRequest()
             .authenticated()
              .and()
+             .logout().logoutUrl("/logout")
+             .logoutSuccessUrl("http://localhost:3000").deleteCookies("JSESSIONID").invalidateHttpSession(true)
+             .and()
             .oauth2Login().successHandler(successHandler);
 
          return http.build();
@@ -46,4 +49,5 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
+
 }
