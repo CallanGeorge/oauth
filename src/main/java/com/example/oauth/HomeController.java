@@ -1,7 +1,6 @@
 package com.example.oauth;
 
 
-
 import com.example.oauth.config.GenericResponse;
 import com.example.oauth.model.User;
 import com.example.oauth.service.EventService;
@@ -41,13 +40,13 @@ import java.util.Map;
 
 
 @RestController
-@CrossOrigin( origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:3000")
 public class HomeController {
 
     private final UserService userService;
 
-    @Autowired
-    EventService eventService;
+@Autowired
+     EventService eventService;
 
     @Autowired
     private OAuth2AuthorizedClientService oAuth2AuthorizedClientService;
@@ -59,18 +58,16 @@ public class HomeController {
 
 
     @GetMapping("/logout")
-    public RedirectView logout (){
+    public RedirectView logout() {
         return new RedirectView("http://localhost:3000");
     }
 
 
-    @GetMapping("/calendar")
-    public void calendar(){
-    //  get method to here https://www.googleapis.com/calendar/v3/calendars/primary
-    }
-
     @GetMapping("/token/{date}")
-    public ResponseEntity<List<Event>> token (@PathVariable LocalDate date, OAuth2AuthenticationToken authenticationToken){
+    public ResponseEntity<List<Event>> token(
+        @PathVariable LocalDate date,
+        OAuth2AuthenticationToken authenticationToken
+    ) {
 
         OAuth2AuthorizedClient authorizedClient =
             this.oAuth2AuthorizedClientService.loadAuthorizedClient(
@@ -80,22 +77,21 @@ public class HomeController {
 
         String accessToken = authorizedClient.getAccessToken().getTokenValue();
 
+        try {
+            List<Event> events = eventService.getPrimaryUserEvents(accessToken, date);
 
+            return ResponseEntity.ok(events);
+        } catch (Exception e) {
 
-            try {
-                List<Event> events = eventService.getUserEvents(accessToken, date);
-
-                return ResponseEntity.ok(events);
-            } catch (Exception e) {
-                // Handle any exceptions
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-            }
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
 
 
     }
 
     @GetMapping("/auth")
-    public RedirectView auth(@ModelAttribute("users")
+    public RedirectView auth(
+        @ModelAttribute("users")
         User user
     ) {
 
@@ -104,7 +100,7 @@ public class HomeController {
 
     @GetMapping("/user")
     public User user(@AuthenticationPrincipal OAuth2User principal) {
-        return userService.details(principal.getAttribute("given_name")) ;
+        return userService.details(principal.getAttribute("given_name"));
     }
 
 
