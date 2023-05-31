@@ -6,7 +6,9 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.util.DateTime;
+import com.google.api.client.util.Sets;
 import com.google.api.services.calendar.Calendar;
+import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.Events;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
@@ -14,7 +16,10 @@ import java.security.GeneralSecurityException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class EventService {
@@ -38,6 +43,14 @@ public class EventService {
                 .build();
 
 
+
+            Events opponentEvents = service.events()
+                .list("francesco.lamarca@xdesign.com")
+                .setTimeMin(startDateTime)
+                .setTimeMax(endDateTime)
+                .execute();
+
+
             Events events = service.events()
                 .list("primary")
                 .setTimeMin(startDateTime)
@@ -46,8 +59,13 @@ public class EventService {
 
 
             List<com.google.api.services.calendar.model.Event> eventList = events.getItems();
+            List<com.google.api.services.calendar.model.Event> opponentEventList = opponentEvents.getItems();
 
-            return eventList;
+            List<Event> allEvents = new ArrayList<Event>(eventList);
+            allEvents.addAll(opponentEventList);
+
+
+            return allEvents;
         } catch (GeneralSecurityException e) {
 
             throw new IOException("Error creating Google Calendar service", e);

@@ -33,7 +33,8 @@ public class SecurityConfig {
              .logout().logoutUrl("/logout")
              .logoutSuccessUrl("http://localhost:3000").deleteCookies("JSESSIONID").invalidateHttpSession(true)
              .and()
-            .oauth2Login().successHandler(successHandler);
+            .oauth2Login()
+             .successHandler(successHandler);
 
          return http.build();
 
