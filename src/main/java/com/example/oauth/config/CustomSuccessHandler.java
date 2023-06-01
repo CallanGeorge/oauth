@@ -44,15 +44,18 @@ public class CustomSuccessHandler implements AuthenticationSuccessHandler {
 
         if(authentication.getPrincipal() instanceof DefaultOAuth2User){
             DefaultOAuth2User userDetails = (DefaultOAuth2User) authentication.getPrincipal();
+            System.out.println(userDetails);
 
 
             String username = userDetails.getAttribute("given_name");
+            String email = userDetails.getAttribute("email");
 
 
-            if(userRepository.findByName(username) == null){
-                // set id and email here too
+            if(userRepository.findByEmail(email) == null){
+
                 User user = new User();
                 user.setName(username);
+                user.setEmail(email);
 
                 userService.save(user);
 

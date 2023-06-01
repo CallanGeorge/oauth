@@ -20,7 +20,7 @@ public class User {
 
     private String name;
 
-    private String googleRefreshToken;
+    private String email;
 
     private int score = 0;
 
