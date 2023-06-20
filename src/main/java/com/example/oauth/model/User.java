@@ -14,15 +14,16 @@ import java.util.UUID;
 @Table(name="users")
 
 public class User {
+
     @Id
-   @GeneratedValue(generator = "UUID")
+   @GeneratedValue
     private UUID id;
 
     private String name;
 
     private String email;
 
-    private int score = 0;
+    private int score;
 
     public String getName() {
         return name;

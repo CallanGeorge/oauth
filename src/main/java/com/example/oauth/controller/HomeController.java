@@ -1,11 +1,13 @@
-package com.example.oauth;
+package com.example.oauth.controller;
 
 
+import com.example.oauth.model.EventDetails;
 import com.example.oauth.model.User;
 import com.example.oauth.service.EventService;
 import com.example.oauth.service.UserService;
-import com.google.api.services.calendar.model.Event;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.view.RedirectView;
 
@@ -26,6 +29,7 @@ import java.util.List;
 
 @RestController
 @CrossOrigin
+@RequestMapping("/api/v1")
 public class HomeController {
 
     private final UserService userService;
@@ -49,7 +53,7 @@ public class HomeController {
 
 
     @GetMapping("/token/{date}")
-    public ResponseEntity<List<Event>> token(
+    public ResponseEntity<List<EventDetails>> token(
         @PathVariable LocalDate date,
         OAuth2AuthenticationToken authenticationToken
     ) {
@@ -62,8 +66,43 @@ public class HomeController {
 
         String accessToken = authorizedClient.getAccessToken().getTokenValue();
 
+
         try {
-            List<Event> events = eventService.getPrimaryUserEvents(accessToken, date);
+            List<EventDetails> events = eventService.getPrimaryUserEvents(accessToken, date);
+            System.out.println(events);
+
+            return ResponseEntity.ok(events);
+        } catch (Exception e) {
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
+
+    }
+
+    @GetMapping("/token/{date}/{name}")
+    public ResponseEntity<List<EventDetails>> token(
+        @PathVariable LocalDate date, @PathVariable String name,
+        OAuth2AuthenticationToken authenticationToken
+    ) {
+
+        User user = userService.getByUsername(name);
+
+
+
+        OAuth2AuthorizedClient authorizedClient =
+            this.oAuth2AuthorizedClientService.loadAuthorizedClient(
+                authenticationToken.getAuthorizedClientRegistrationId(),
+                authenticationToken.getName()
+            );
+
+        String accessToken = authorizedClient.getAccessToken().getTokenValue();
+
+        try {
+            System.out.println(user.getEmail());
+            List<EventDetails> events = eventService.getOpponentEvents(accessToken, date, user.getEmail());
+            System.out.println(events);
+
 
             return ResponseEntity.ok(events);
         } catch (Exception e) {
@@ -83,9 +122,22 @@ public class HomeController {
         return new RedirectView("http://localhost:3000/home");
     }
 
+    @GetMapping("/users")
+    Page<User> getUsers( Pageable
+        page){
+        return userService.getUsers(page);
+    }
+
     @GetMapping("/user")
     public User user(@AuthenticationPrincipal OAuth2User principal) {
         return userService.details(principal.getAttribute("given_name"));
+    }
+
+    @GetMapping("/users/{username}")
+    User getByUsername(@PathVariable String username){
+        User user = userService.getByUsername(username);
+        return user;
+
     }
 
 

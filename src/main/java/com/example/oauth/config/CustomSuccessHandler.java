@@ -47,6 +47,7 @@ public class CustomSuccessHandler implements AuthenticationSuccessHandler {
             System.out.println(userDetails);
 
 
+
             String username = userDetails.getAttribute("given_name");
             String email = userDetails.getAttribute("email");
 
@@ -56,6 +57,9 @@ public class CustomSuccessHandler implements AuthenticationSuccessHandler {
                 User user = new User();
                 user.setName(username);
                 user.setEmail(email);
+                user.setScore(0);
+
+
 
                 userService.save(user);
 
