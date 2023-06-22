@@ -33,7 +33,7 @@ import java.util.Set;
 @Service
 public class EventService {
 
-    public void sendCalendarInvite(String accessToken, User user1, User user2, LocalDateTime eventTime) throws IOException, GeneralSecurityException {
+    public Boolean sendCalendarInvite(String accessToken, User user1, User user2, LocalDateTime eventTime) throws IOException, GeneralSecurityException {
         HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
         JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
 
@@ -89,8 +89,10 @@ public class EventService {
         // Insert the event
         try {
             service.events().insert("primary", event).execute();
+
+            return true;
         } catch (GoogleJsonResponseException e) {
-            // Handle error
+           return false;
         }
     }
 
