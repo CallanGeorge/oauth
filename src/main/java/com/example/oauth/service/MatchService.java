@@ -129,8 +129,7 @@ public class MatchService {
 
         if(match.getPlayer1Voted() == true && match.getPlayer2Voted() == true){
             if(match.getPlayer1Vote().equals(match.getPlayer2Vote())){
-                User winner = userRepository.findByName(match.getPlayer2Vote());
-
+                User winner = userRepository.findByEmail(match.getPlayer2Vote());
 
                 match.setWinner(match.getPlayer1Vote());
                 matchRepository.save(match);
