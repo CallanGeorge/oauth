@@ -68,8 +68,35 @@ public class HomeController {
 
 
         try {
-            List<EventDetails> events = eventService.getPrimaryUserEvents(accessToken, date);
+            List<EventDetails> events = eventService.getEvents(accessToken, date, "primary");
             System.out.println(events);
+
+            return ResponseEntity.ok(events);
+        } catch (Exception e) {
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
+
+    }
+
+    @GetMapping("/token/whiffwhaff/{date}")
+    public ResponseEntity<List<EventDetails>> whiffWhaffCalendar(
+        @PathVariable LocalDate date,
+        OAuth2AuthenticationToken authenticationToken
+    ) {
+
+        OAuth2AuthorizedClient authorizedClient =
+            this.oAuth2AuthorizedClientService.loadAuthorizedClient(
+                authenticationToken.getAuthorizedClientRegistrationId(),
+                authenticationToken.getName()
+            );
+
+        String accessToken = authorizedClient.getAccessToken().getTokenValue();
+
+
+        try {
+            List<EventDetails> events = eventService.getEvents(accessToken, date, "service_whiffwhaff@xdesign.com");
 
             return ResponseEntity.ok(events);
         } catch (Exception e) {
@@ -100,7 +127,7 @@ public class HomeController {
 
         try {
             System.out.println(user.getEmail());
-            List<EventDetails> events = eventService.getOpponentEvents(accessToken, date, user.getEmail());
+            List<EventDetails> events = eventService.getEvents(accessToken, date, user.getEmail());
             System.out.println(events);
 
 

@@ -7,6 +7,8 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 
 @Data
 @Entity
@@ -23,6 +25,8 @@ public class Match {
     @NotNull
     private String player2;
 
+    private LocalDateTime matchDateTime;
+
     private Boolean player1Voted = false;
 
     private Boolean player2Voted = false;
@@ -31,7 +35,7 @@ public class Match {
 
     private String player2Vote;
 
-    private Boolean accepted = false;
+    private int response = 0;
 
     private String winner ;
 

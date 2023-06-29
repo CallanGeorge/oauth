@@ -113,6 +113,7 @@ public class MatchController {
           Match match = new Match();
           match.setPlayer1(matchRequest.getPlayer1());
           match.setPlayer2(matchRequest.getPlayer2());
+          match.setMatchDateTime(dateTime);
 
           matchService.save(match);
           return new GenericResponse("Match created!");

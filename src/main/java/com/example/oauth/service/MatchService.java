@@ -3,6 +3,7 @@ package com.example.oauth.service;
 
 import ch.qos.logback.core.joran.util.ConfigurationWatchListUtil;
 import com.example.oauth.model.Match;
+import com.example.oauth.model.RequestResponse;
 import com.example.oauth.model.User;
 import com.example.oauth.repository.MatchRepository;
 import com.example.oauth.repository.UserRepository;
@@ -45,8 +46,11 @@ public class MatchService {
     }
 
     public List<Match> getUserInvites(String username){
-        List<Match> invites = matchRepository.findAllByPlayer1AndAcceptedIsFalse(username);
-        List<Match> moreInvites = matchRepository.findAllByPlayer2AndAcceptedIsFalse(username);
+        List<Match> invites = matchRepository.findAllByPlayer1(username);
+        List<Match> moreInvites = matchRepository.findAllByPlayer2(username);
+
+        invites.removeIf(inv -> inv.getResponse() != 0);
+        moreInvites.removeIf(minv -> minv.getResponse() != 0);
 
         List<Match> allInvites = new ArrayList<Match>(invites);
         allInvites.addAll(moreInvites);
@@ -83,8 +87,11 @@ public class MatchService {
     }
 
     public List<Match> getOngoingUserMatches(String username){
-        List<Match> matches = matchRepository.findAllByPlayer1AndWinnerIsNullAndAcceptedIsTrue(username);
-        List<Match> moreMatches = matchRepository.findAllByPlayer2AndWinnerIsNullAndAcceptedIsTrue(username);
+        List<Match> matches = matchRepository.findAllByPlayer1AndWinnerIsNull(username);
+        List<Match> moreMatches = matchRepository.findAllByPlayer2AndWinnerIsNull(username);
+
+        matches.removeIf(match -> match.getResponse() != 1);
+        moreMatches.removeIf(match2 -> match2.getResponse() != 1);
 
         List<Match> allMatches = new ArrayList<Match>(matches);
         allMatches.addAll(moreMatches);
@@ -96,7 +103,7 @@ public class MatchService {
 
     public Match accept(long id){
         Match inDB = matchRepository.getOne(id);
-        inDB.setAccepted(true);
+        inDB.setResponse(1);
 
         return matchRepository.save(inDB);
     }

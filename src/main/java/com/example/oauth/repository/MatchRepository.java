@@ -17,18 +17,18 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
     Page<Match> findAllByPlayer1VotedIsTrueAndPlayer2VotedIsTrueOrderByIdDesc(Pageable page);
 
 
-    List<Match>findAllByPlayer1AndWinnerIsNullAndAcceptedIsTrue(String username);
+    List<Match>findAllByPlayer1AndWinnerIsNull(String username);
 
-    List<Match>findAllByPlayer2AndWinnerIsNullAndAcceptedIsTrue(String username);
+    List<Match>findAllByPlayer2AndWinnerIsNull(String username);
 
     List<Match>findAllByPlayer1AndWinnerIsNotNull(String username);
 
     List<Match>findAllByPlayer2AndWinnerIsNotNull(String username);
 
 
-    List<Match>findAllByPlayer1AndAcceptedIsFalse(String username);
+    List<Match>findAllByPlayer1(String username);
 
-    List<Match>findAllByPlayer2AndAcceptedIsFalse(String username);
+    List<Match>findAllByPlayer2(String username);
 
 
 }

@@ -58,10 +58,12 @@ public class EventService {
             .setEmail(user2.getEmail());
         attendees.add(attendee2);
 
+        EventAttendee whiffWhaffCalendar = new EventAttendee()
+            .setEmail("service_whiffwhaff@xdesign.com");
+        attendees.add(attendee2);
+
         event.setAttendees(attendees);
 
-        // Set the event start and end time
-        // Adjust the time zone and format according to your needs
 
         ZoneId zoneId = ZoneId.systemDefault();
 
@@ -96,7 +98,10 @@ public class EventService {
         }
     }
 
-    public List<EventDetails>getPrimaryUserEvents(String accessToken, LocalDate date) throws IOException {
+
+
+
+    public List<EventDetails>getEvents(String accessToken, LocalDate date, String email) throws IOException {
 
         DateTime startDateTime = new DateTime(date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli());
         DateTime endDateTime = new DateTime(date.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli());
@@ -115,41 +120,7 @@ public class EventService {
 
 
             Events events = service.events()
-                .list("primary")
-                .setTimeMin(startDateTime)
-                .setTimeMax(endDateTime)
-                .execute();
-
-
-            return getEvents(events);
-        } catch (GeneralSecurityException e) {
-
-            throw new IOException("Error creating Google Calendar service", e);
-        }
-
-    }
-
-
-    public List<EventDetails>getOpponentEvents(String accessToken, LocalDate date, String opponentEmail) throws IOException {
-
-        DateTime startDateTime = new DateTime(date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli());
-        DateTime endDateTime = new DateTime(date.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli());
-
-
-        try {
-
-            HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-            JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
-
-            GoogleCredential credential = new GoogleCredential().setAccessToken(accessToken);
-
-            Calendar service = new Calendar.Builder(httpTransport, jsonFactory, credential)
-                .setApplicationName("WhiffWhaff")
-                .build();
-
-
-            Events events = service.events()
-                .list(opponentEmail)
+                .list(email)
                 .setTimeMin(startDateTime)
                 .setTimeMax(endDateTime)
                 .execute();
