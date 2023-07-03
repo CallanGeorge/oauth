@@ -35,7 +35,7 @@ public class Match {
 
     private String player2Vote;
 
-    private int response = 0;
+    private RequestStatus response = RequestStatus.PENDING;
 
     private String winner ;
 
