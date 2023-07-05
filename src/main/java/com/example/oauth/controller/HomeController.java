@@ -2,6 +2,7 @@ package com.example.oauth.controller;
 
 
 import com.example.oauth.model.EventDetails;
+import com.example.oauth.model.GenericResponse;
 import com.example.oauth.model.User;
 import com.example.oauth.service.EventService;
 import com.example.oauth.service.UserService;
@@ -19,10 +20,12 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.view.RedirectView;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -137,6 +140,24 @@ public class HomeController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
+
+    }
+
+    @GetMapping("/check/{eventId}/{email}/{challengedEmail}")
+    public GenericResponse checkEvent ( OAuth2AuthenticationToken authenticationToken, @PathVariable long eventId, @PathVariable String email, @PathVariable String challengedEmail) throws IOException {
+
+
+        OAuth2AuthorizedClient authorizedClient =
+            this.oAuth2AuthorizedClientService.loadAuthorizedClient(
+                authenticationToken.getAuthorizedClientRegistrationId(),
+                authenticationToken.getName()
+            );
+
+        String accessToken = authorizedClient.getAccessToken().getTokenValue();
+
+        GenericResponse message = eventService.checkEvent(accessToken, email, challengedEmail, eventId);
+
+        return message;
 
     }
 

@@ -13,6 +13,8 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
 
     Match getMatchById(long id);
 
+    void deleteById(long id);
+
 
     Page<Match> findAllByPlayer1VotedIsTrueAndPlayer2VotedIsTrueOrderByIdDesc(Pageable page);
 

@@ -1,7 +1,11 @@
 package com.example.oauth.service;
 
 import com.example.oauth.model.EventDetails;
+import com.example.oauth.model.GenericResponse;
+import com.example.oauth.model.Match;
+import com.example.oauth.model.RequestStatus;
 import com.example.oauth.model.User;
+import com.example.oauth.repository.MatchRepository;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
@@ -14,6 +18,7 @@ import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventAttendee;
 import com.google.api.services.calendar.model.EventDateTime;
 import com.google.api.services.calendar.model.Events;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -29,9 +34,13 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 @Service
 public class EventService {
+
+    @Autowired
+    MatchRepository matchRepository;
 
     public Boolean sendCalendarInvite(String accessToken, User user1, User user2, LocalDateTime eventTime) throws IOException, GeneralSecurityException {
         HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
@@ -99,6 +108,66 @@ public class EventService {
     }
 
 
+    public GenericResponse checkEvent(String accessToken, String email, String challengedEmail, long eventId) throws IOException {
+
+        Match match = matchRepository.getMatchById(eventId);
+
+        Date convertableDate = Date.from(match.getMatchDateTime().atZone(ZoneId.systemDefault()).toInstant());
+        Date convertableEndDate = Date.from(match.getMatchDateTime().plusMinutes(30).atZone(ZoneId.systemDefault()).toInstant());
+
+        try {
+
+            HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+            JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+
+            GoogleCredential credential = new GoogleCredential().setAccessToken(accessToken);
+
+            Calendar service = new Calendar.Builder(httpTransport, jsonFactory, credential)
+                .setApplicationName("WhiffWhaff")
+                .build();
+
+
+            Events events = service.events()
+                .list(email)
+                .setTimeMin(new DateTime(convertableDate))
+                .setTimeMax(new DateTime(convertableEndDate))
+                .execute();
+
+            List<Event> eventList = events.getItems();
+
+
+
+
+            for (Event event : eventList){
+
+                final List<EventAttendee> users = event.getAttendees();
+
+                for ( EventAttendee user : users){
+                   if( user.getEmail() == challengedEmail && user.getResponseStatus().equals("accepted")){
+
+
+                    match.setResponse(RequestStatus.ACCEPTED);
+                    matchRepository.save(match);
+                   }
+                }
+
+               if( event.getAttendees().stream().anyMatch(eventAttendee -> eventAttendee.getResponseStatus().equals("declined"))) {
+                   matchRepository.deleteById(eventId);
+                   return new GenericResponse(" DELETED");
+               }
+
+            }
+
+            // FIGURE OUT A BETTER RETURN FOR THIS AND ALSO TEST
+
+                return new GenericResponse(" nothing updated");
+        } catch (GeneralSecurityException e) {
+
+            throw new IOException("Error creating Google Calendar service", e);
+        }
+
+    }
+
 
 
     public List<EventDetails>getEvents(String accessToken, LocalDate date, String email) throws IOException {
@@ -126,7 +195,11 @@ public class EventService {
                 .execute();
 
 
-            return getEvents(events);
+
+            final var filteredEvents = filterEvents(events);
+
+
+            return filteredEvents;
         } catch (GeneralSecurityException e) {
 
             throw new IOException("Error creating Google Calendar service", e);
@@ -134,15 +207,20 @@ public class EventService {
 
     }
 
-    private List<EventDetails> getEvents(Events events) {
+    private List<EventDetails>filterEvents(Events events) {
         List<Event> eventList = events.getItems();
-
 
         Set<String> eventIds = new HashSet<>();
         Set<String> eventSummaries = new HashSet<>();
         List<EventDetails> filteredEventList = new ArrayList<>();
+
         for (Event event : eventList) {
             if (!eventIds.contains(event.getId()) && !"cancelled".equals(event.getStatus()) && !eventSummaries.contains(event.getSummary())) {
+
+
+                System.out.println(event);
+                System.out.println("bawbag");
+
 
                 Instant instant = Instant.ofEpochMilli(event.getStart().getDateTime().getValue());
                 LocalDateTime dateTime = LocalDateTime.ofInstant(instant, ZoneId.of(event.getStart().getTimeZone()));
@@ -158,10 +236,16 @@ public class EventService {
                 filteredEventList.add(details);
                 eventIds.add(event.getId());
                 eventSummaries.add(event.getSummary());
+
+
+
             }
+
+
         }
         Collections.sort(filteredEventList, Comparator.comparing(EventDetails::getTime));
 
         return filteredEventList;
     }
+
 }
