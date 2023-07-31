@@ -28,6 +28,7 @@ import org.springframework.web.servlet.view.RedirectView;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @RestController
@@ -56,7 +57,7 @@ public class HomeController {
 
 
     @GetMapping("/token/{date}")
-    public ResponseEntity<List<EventDetails>> token(
+    public ResponseEntity<List<String>> token(
         @PathVariable LocalDate date,
         OAuth2AuthenticationToken authenticationToken
     ) {
@@ -72,9 +73,11 @@ public class HomeController {
 
         try {
             List<EventDetails> events = eventService.getEvents(accessToken, date, "primary");
-            System.out.println(events);
+            List<String> eventTimes = events.stream()
+                .map(EventDetails::getTime)
+                .collect(Collectors.toList());
 
-            return ResponseEntity.ok(events);
+            return ResponseEntity.ok(eventTimes);
         } catch (Exception e) {
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -84,7 +87,7 @@ public class HomeController {
     }
 
     @GetMapping("/token/whiffwhaff/{date}")
-    public ResponseEntity<List<EventDetails>> whiffWhaffCalendar(
+    public ResponseEntity<List<String>> whiffWhaffCalendar(
         @PathVariable LocalDate date,
         OAuth2AuthenticationToken authenticationToken
     ) {
@@ -100,8 +103,11 @@ public class HomeController {
 
         try {
             List<EventDetails> events = eventService.getEvents(accessToken, date, "service_whiffwhaff@xdesign.com");
+            List<String> eventTimes = events.stream()
+                .map(EventDetails::getTime)
+                .collect(Collectors.toList());
 
-            return ResponseEntity.ok(events);
+            return ResponseEntity.ok(eventTimes);
         } catch (Exception e) {
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -111,7 +117,7 @@ public class HomeController {
     }
 
     @GetMapping("/token/{date}/{name}")
-    public ResponseEntity<List<EventDetails>> token(
+    public ResponseEntity<List<String>> token(
         @PathVariable LocalDate date, @PathVariable String name,
         OAuth2AuthenticationToken authenticationToken
     ) {
@@ -131,10 +137,11 @@ public class HomeController {
         try {
             System.out.println(user.getEmail());
             List<EventDetails> events = eventService.getEvents(accessToken, date, user.getEmail());
-            System.out.println(events);
+            List<String> eventTimes = events.stream()
+                .map(EventDetails::getTime)
+                .collect(Collectors.toList());
 
-
-            return ResponseEntity.ok(events);
+            return ResponseEntity.ok(eventTimes);
         } catch (Exception e) {
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -156,6 +163,8 @@ public class HomeController {
         String accessToken = authorizedClient.getAccessToken().getTokenValue();
 
         GenericResponse message = eventService.checkEvent(accessToken, email, challengedEmail, eventId);
+
+        System.out.println(message);
 
         return message;
 

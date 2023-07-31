@@ -135,6 +135,11 @@ public class EventService {
 
             List<Event> eventList = events.getItems();
 
+            if(eventList.isEmpty()){
+                matchRepository.deleteById(eventId);
+                return new GenericResponse("DELETED");
+            }
+
 
 
 
@@ -153,14 +158,14 @@ public class EventService {
 
                if( event.getAttendees().stream().anyMatch(eventAttendee -> eventAttendee.getResponseStatus().equals("declined"))) {
                    matchRepository.deleteById(eventId);
-                   return new GenericResponse(" DELETED");
+                   return new GenericResponse("DELETED");
                }
 
             }
 
             // FIGURE OUT A BETTER RETURN FOR THIS AND ALSO TEST
 
-                return new GenericResponse(" nothing updated");
+                return new GenericResponse("nothing updated");
         } catch (GeneralSecurityException e) {
 
             throw new IOException("Error creating Google Calendar service", e);
